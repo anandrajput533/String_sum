@@ -3,17 +3,24 @@ require 'minitest/autorun'
 class StringCalculator
     def self.addition(values)
         return 0 if values.empty?
+        delimiter, values = extract_delimiter(values)
+        values_array = values.split(delimiter)
+        handle_negative_value(values_array)
+        values_array.map(&:to_i).sum
+      end
+
+      def self.extract_delimiter(values)
         if values.start_with?("//")
-            delimiter, values = values[2..].split("\n", 2)
-            values = values.split(/#{Regexp.escape(delimiter)}|\n/)
+          delimiter, values = values[2..].split("\n", 2)
+          [Regexp.escape(delimiter).gsub("\\", ""), values]
         else
-            values = values.split(/,|\n/)
+          [/,|\n/, values]
         end
+      end
+      def self.handle_negative_value(values)
         negatives = values.select { |n| n.to_i < 0 }
         raise "negative values not allowed: #{negatives.join(", ")}" if negatives.any?
-        values.sum(&:to_i)
-    end
-    
+      end
 end
 # 
 puts StringCalculator.addition("") # => 0
@@ -23,6 +30,8 @@ puts StringCalculator.addition("6\n4,8") # => 18
 puts StringCalculator.addition("5,6,7,8,9")# => 35
 puts StringCalculator.addition("//;\n2;8") # => 10
 # puts StringCalculator.addition("5,-7") # unlock the line to see error
+# puts StringCalculator.addition("5,-7,-9,-8") # unlock the line to see error
+
 #  test Cases
 class StringCalculatorTest < Minitest::Test
     # Test for adding with an empty string.
